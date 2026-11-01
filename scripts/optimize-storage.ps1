@@ -167,7 +167,7 @@ try { if (Test-Path 'C:\Temp') { Remove-Tree 'C:\Temp' 'C:\Temp' | Out-Null } } 
 try { Log '  DISM/cleanmgr dilewati (fast mode) - biar tidak stuck' } catch {}
 try { Clear-RecycleBin -Force -ErrorAction SilentlyContinue; Log '  RecycleBin dikosongkan' } catch {}
 
-# ---------- 5b. DEBLOAT - hapus app bawaan gede (Edge + OneDrive + Xbox dll) ----------
+# ---------- 5b. DEBLOAT - remover apenas apps opcionais; preservar navegador e apps de jogo ----------
 # Env DEBLOAT: tidak / ringan / full (default FULL kalau STORAGE_BOOST=ya, user mau habisin semua)
 $debloat = if ($env:DEBLOAT) { $env:DEBLOAT.Trim().ToLower() } else { 'ringan' }
 if ($env:DEBLOAT -eq 'tidak' -or $env:DEBLOAT -eq '0' -or $env:DEBLOAT -eq 'false') { $debloat = 'tidak' }
@@ -177,7 +177,7 @@ if ($cfgDeb -and $null -ne $cfgDeb.Value) {
   # jika di rdp-extras.json ada setting debloat, pakai itu kalau input tidak diisi explicit
   if (-not $env:DEBLOAT) { $debloat = "$($cfgDeb.Value)".ToLower() }
 }
-Log "  Debloat mode: $debloat (tidak=skip, ringan=OneDrive/Xbox/Appx, full=+Edge+Unity+R+shortcuts HABIS)"
+Log "  Debloat mode: $debloat (tidak=skip, ringan=apps opcionais, full=limpeza ampliada)"
 
 if ($debloat -ne 'tidak') {
   # cek Chrome ada sebelum hapus Edge
@@ -196,7 +196,7 @@ if ($debloat -ne 'tidak') {
     'Microsoft.WindowsMaps','Microsoft.Microsoft3DViewer','Microsoft.Print3D','Microsoft.Wallet',
     'Microsoft.MicrosoftSolitaireCollection','Clipchamp.Clipchamp'
   )
-  # full tambahan Edge + Office hub - HABISIN SEMUA (Edge beneran dihapus paksa)
+  # full pode remover componentes opcionais adicionais; Edge permanece protegido.
   $tryEdge = $false # Edge sempre preservado; navegador reserva para acesso ao RDP
   if ($tryEdge) {
     Log "  Debloat EDGE: HABISIN $(if ($debloat -eq 'full') {'FULL paksa'} else {'ringan'}) - WebView2 dipertahankan"
@@ -257,7 +257,7 @@ if ($debloat -ne 'tidak') {
       }
     } catch { Log "  Debloat Edge error: $($_.Exception.Message)" }
   } else {
-    Log '  Debloat RINGAN: Edge dipertahankan (Chrome tidak ada). Pakai full kalau mau habisin Edge.'
+    Log '  Edge dipertahankan como navegador de reserva para a sessão RDP'
   }
 
   # hapus Appx untuk ringan & full
@@ -283,7 +283,7 @@ if ($debloat -ne 'tidak') {
   Log "  Debloat Appx selesai: $removedAppx paket dihapus"
   # ---------- 5c. HABISIN shortcut & sisa Unity, RGui, Edge, OneDrive, Xbox (TANPA menyentuh shortcut Game/App user!) ----------
   if ($debloat -eq 'full') {
-    Log '  FULL debloat: habisin shortcut & sisa Unity/RGui/Edge/OneDrive...'
+    Log '  FULL debloat: limpeza ampliada de atalhos e resíduos opcionais...'
     $shortcuts = @(
       'C:\Users\Public\Desktop\Unity*.lnk','C:\Users\Public\Desktop\R x64*.lnk','C:\Users\Public\Desktop\R i386*.lnk','C:\Users\Public\Desktop\RGui*.lnk','C:\Users\Public\Desktop\*Edge*.lnk','C:\Users\Public\Desktop\*OneDrive*.lnk','C:\Users\Public\Desktop\*Xbox*.lnk',
       'C:\Users\Default\Desktop\Unity*.lnk','C:\Users\Default\Desktop\R x64*.lnk','C:\Users\Default\Desktop\*Edge*.lnk',
