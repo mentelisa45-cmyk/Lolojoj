@@ -1219,31 +1219,11 @@ function Install-EuroTruckSimulator2FreeSuite {
   $etsDir = 'C:\Games\ETS2'
   New-Item -ItemType Directory -Path $etsDir -Force -ErrorAction SilentlyContinue | Out-Null
 
-  # 1. Unduh & pasang langsung Euro Truck Simulator 2 (Inno Setup resmi SCS Software dari Internet Archive)
-  #    SAAT setup-games.ps1 berjalan supaya begitu RDP aktif, eurotrucks2.exe sudah terpasang penuh!
+  # ETS2 deve ser instalado por uma fonte autorizada (Steam ou loja oficial).
+  # Não baixar instaladores antigos de arquivos espelhados nem alterar o executável.
   $etsExe = 'C:\Games\ETS2\bin\win_x86\eurotrucks2.exe'
-  $setupExe = Join-Path $etsDir 'EuroTruckSimulator2_setup.exe'
   if (-not (Test-Path $etsExe)) {
-    Log 'Mengunduh & memasang Euro Truck Simulator 2 (Resmi SCS Software)...'
-    foreach ($etsUrl in @(
-      'https://ia601805.us.archive.org/7/items/ets2v1.1.1/EuroTruckSimulator2_setup.exe',
-      'https://ia801805.us.archive.org/7/items/ets2v1.1.1/EuroTruckSimulator2_setup.exe',
-      'https://web.archive.org/web/20130312033231if_/http://download.eurotrucksimulator2.com/EuroTruckSimulator2.exe',
-      'https://web.archive.org/web/20130312033231if_/http://download.eurotrucksimulator2.com/EuroTruckSimulator2_setup.exe'
-    )) {
-      if (Invoke-GameDownload $etsUrl $setupExe 100000000) {
-        Log 'Menjalankan silent install Euro Truck Simulator 2 ke C:\Games\ETS2...'
-        $proc = Start-Process -FilePath $setupExe -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/SP-', '/DIR="C:\Games\ETS2"') -PassThru -WindowStyle Hidden
-        if ($proc) { $proc.WaitForExit(180000) | Out-Null }
-        Remove-Item $setupExe -Force -ErrorAction SilentlyContinue
-        break
-      }
-    }
-  }
-
-  # 1b. Terapkan 27-Point Full Version Binary Patch agar eurotrucks2.exe TIDAK PERNAH meminta Product Key!
-  if (Test-Path $etsExe) {
-    Patch-Ets2FullVersionBinary $etsExe | Out-Null
+    Log 'ETS 2 não foi baixado automaticamente: instale pela Steam e depois use o atalho desta pasta.'
   }
 
   # Salin wrapper Direct3D 9 (dgVoodoo2) ke folder bin\win_x86 dengan OutputAPI = d3d11warp agar ETS 2 berjalan mulus di RDP tanpa GPU fisik
