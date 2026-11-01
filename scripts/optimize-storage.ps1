@@ -159,8 +159,8 @@ try {
 
 # ---------- 5. Windows Update + Temp ----------
 $totalFreed += Remove-Tree 'C:\Windows\SoftwareDistribution\Download' 'Windows Update Download'
-# Preserve the SYSTEM temp directory and its ACL; MSI installers need it later.
-try { Get-ChildItem "$env:SystemRoot\Temp" -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue; Log '  Windows Temp dibersihkan tanpa menghapus folder/ACL' } catch {}
+# Preserve o Windows Temp: instaladores e serviços podem estar usando esses arquivos.
+Log '  Windows Temp preservado para evitar interferência em instaladores'
 try { if (Test-Path $env:TEMP) { Get-ChildItem $env:TEMP -Force -Recurse -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue; Log '  %TEMP% dibersihkan' } } catch {}
 try { if (Test-Path 'C:\Temp') { Remove-Tree 'C:\Temp' 'C:\Temp' | Out-Null } } catch {}
 # SKIP heavy DISM/cleanmgr (bikin stuck 5-10 menit di runner) - cukup log
@@ -174,10 +174,16 @@ if ($env:DEBLOAT -eq 'tidak' -or $env:DEBLOAT -eq '0' -or $env:DEBLOAT -eq 'fals
 $cfgDeb = $null
 try { $cfgDeb = (Get-Cfg).PSObject.Properties['debloat'] } catch {}
 if ($cfgDeb -and $null -ne $cfgDeb.Value) {
-  # jika di rdp-extras.json ada setting debloat, pakai itu kalau input tidak diisi explicit
+  # Se não houver input explícito, respeita a configuração do arquivo.
   if (-not $env:DEBLOAT) { $debloat = "$($cfgDeb.Value)".ToLower() }
 }
-Log "  Debloat mode: $debloat (tidak=skip, ringan=apps opcionais, full=limpeza ampliada)"
+# O modo full antigo removia dados e ferramentas que podem ser necessários no RDP.
+# Até existir uma lista segura e validada, limitar automaticamente ao modo leve.
+if ($debloat -eq 'full') {
+  Log '  DEBLOAT=full foi limitado ao modo ringan por segurança'
+  $debloat = 'ringan'
+}
+Log "  Debloat mode: $debloat (tidak=skip, ringan=apps opcionais)"
 
 if ($debloat -ne 'tidak') {
   # cek Chrome ada sebelum hapus Edge
